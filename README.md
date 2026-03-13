@@ -1,36 +1,71 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Comer na Cidade
 
-## Getting Started
+Catálogo digital de comércios locais — restaurantes, padarias, lanchonetes e mais, organizados por cidade e categoria.
 
-First, run the development server:
+**Site:** [comernacidade.com.br](https://comernacidade.com.br)
+
+## Stack
+
+- **Next.js 16** (App Router + Turbopack) + **React 19** + **TypeScript**
+- **Drizzle ORM** + **Turso** (libsql) — SQLite-compatível, edge-ready
+- **Auth.js v5** — magic link via Resend, sem senhas
+- **Tailwind v4** + **shadcn/ui v4** — cores oklch, variáveis CSS, primitivos Radix
+- **Cloudflare R2** — armazenamento de imagens via S3 presigned URLs
+
+## Desenvolvimento
 
 ```bash
+# Instalar dependências
+npm install
+
+# Copiar variáveis de ambiente
+cp .env.example .env.local
+# Preencher as variáveis em .env.local
+
+# Iniciar servidor de desenvolvimento
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Acesse [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Variáveis de Ambiente
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variável | Descrição |
+|---|---|
+| `DATABASE_URL` | URL de conexão Turso |
+| `DATABASE_AUTH_TOKEN` | Token de autenticação Turso |
+| `AUTH_SECRET` | Segredo Auth.js (`openssl rand -base64 32`) |
+| `AUTH_RESEND_KEY` | Chave da API Resend (magic link) |
+| `NEXT_PUBLIC_APP_URL` | URL raiz da aplicação |
+| `R2_ACCOUNT_ID` | ID da conta Cloudflare |
+| `R2_ACCESS_KEY_ID` | Access key R2 |
+| `R2_SECRET_ACCESS_KEY` | Secret key R2 |
+| `R2_BUCKET` | Nome do bucket R2 |
+| `NEXT_PUBLIC_R2_PUBLIC_URL` | URL pública do bucket R2 |
 
-## Learn More
+## Comandos
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run dev                   # Servidor de desenvolvimento (Turbopack)
+npm run build                 # Build de produção
+npm run lint                  # ESLint
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+npm run db:generate           # Gerar migrations (Drizzle)
+npm run db:migrate            # Aplicar migrations no Turso
+npm run db:studio             # Abrir Drizzle Studio (GUI do banco)
+npm run db:seed:cities        # Seed de ~5570 cidades brasileiras
+npm run db:seed:categories    # Seed de 12 categorias de comida
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Estrutura de Rotas
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Rota | Descrição |
+|---|---|
+| `/` | Home com busca por cidade |
+| `/comercio/[slug]` | Página individual do comércio |
+| `/restaurantes/[estado]/[cidade]` | Listagem por cidade |
+| `/restaurantes/[estado]/[cidade]/[categoria]` | Listagem por cidade e categoria |
+| `/dashboard` | Painel do dono (protegido) |
+| `/dashboard/perfil` | Perfil e dados do comércio |
+| `/dashboard/cardapio` | Editor de cardápio (Markdown) |
+| `/dashboard/horarios` | Horários de funcionamento |
