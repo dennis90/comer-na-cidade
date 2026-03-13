@@ -1,7 +1,9 @@
 import { MetadataRoute } from 'next';
-import { db } from '@/db';
+import { getDb } from '@/db';
 import { commerces } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
+
+export const dynamic = 'force-dynamic';
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://comernacidade.com.br';
 
@@ -17,6 +19,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   });
 
   try {
+    const db = await getDb();
     // Páginas de comércio individuais
     const publishedCommerces = await db.query.commerces.findMany({
       where: eq(commerces.published, true),

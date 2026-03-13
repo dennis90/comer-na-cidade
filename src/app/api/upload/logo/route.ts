@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { db } from '@/db';
+import { getDb } from '@/db';
 import { commerces } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
@@ -14,6 +14,7 @@ export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+  const db = await getDb();
   const commerce = await db.query.commerces.findFirst({
     where: eq(commerces.ownerId, session.user.id),
   });

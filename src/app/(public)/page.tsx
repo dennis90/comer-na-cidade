@@ -1,4 +1,4 @@
-import { db } from '@/db';
+import { getDb } from '@/db';
 import { commerces } from '@/db/schema';
 import { eq, sql, count } from 'drizzle-orm';
 import { CitySearch } from '@/components/public/city-search';
@@ -15,6 +15,7 @@ export const metadata: Metadata = {
 
 async function getStats() {
   try {
+    const db = await getDb();
     const [commerceCount, cityCount] = await Promise.all([
       db.select({ count: count() }).from(commerces).where(eq(commerces.published, true)),
       db
@@ -33,6 +34,7 @@ async function getStats() {
 
 async function getFeaturedCities() {
   try {
+    const db = await getDb();
     // Cidades com mais comércios publicados
     const result = await db
       .select({
@@ -64,6 +66,7 @@ async function getFeaturedCities() {
 
 async function getCategories() {
   try {
+    const db = await getDb();
     return await db.query.categories.findMany({ orderBy: (c, { asc }) => asc(c.name) });
   } catch {
     return [];

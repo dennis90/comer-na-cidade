@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { db } from '@/db';
+import { getDb } from '@/db';
 import { commerces, commerceCategories, commerceModalities, operatingHours, menus } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
@@ -29,6 +29,7 @@ export async function GET() {
   const session = await auth();
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+  const db = await getDb();
   const commerce = await db.query.commerces.findFirst({
     where: eq(commerces.ownerId, session.user.id),
     with: {
@@ -46,6 +47,7 @@ export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+  const db = await getDb();
   // One commerce per user
   const existing = await db.query.commerces.findFirst({
     where: eq(commerces.ownerId, session.user.id),
@@ -92,6 +94,7 @@ export async function PATCH(req: NextRequest) {
   const session = await auth();
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+  const db = await getDb();
   const commerce = await db.query.commerces.findFirst({
     where: eq(commerces.ownerId, session.user.id),
   });

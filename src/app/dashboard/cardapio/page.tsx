@@ -1,6 +1,6 @@
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
-import { db } from '@/db';
+import { getDb } from '@/db';
 import { commerces, menus } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { MenuEditor } from '@/components/dashboard/menu-editor';
@@ -9,6 +9,7 @@ export default async function CardapioPage() {
   const session = await auth();
   if (!session) redirect('/login');
 
+  const db = await getDb();
   const commerce = await db.query.commerces.findFirst({
     where: eq(commerces.ownerId, session.user.id),
   });

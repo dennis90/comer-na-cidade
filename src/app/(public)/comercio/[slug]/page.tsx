@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { db } from '@/db';
+import { getDb } from '@/db';
 import { commerces } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import Image from 'next/image';
@@ -12,6 +12,7 @@ interface Props {
 }
 
 async function getCommerce(slug: string) {
+  const db = await getDb();
   return db.query.commerces.findFirst({
     where: eq(commerces.slug, slug),
     with: {
@@ -46,17 +47,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export async function generateStaticParams() {
-  try {
-    const published = await db.query.commerces.findMany({
-      where: eq(commerces.published, true),
-      columns: { slug: true },
-    });
-    return published.map((c) => ({ slug: c.slug }));
-  } catch {
-    return [];
-  }
-}
+export const dynamic = 'force-dynamic';
 
 const DAYS_PT = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
 const MODALITY_LABELS: Record<string, string> = {

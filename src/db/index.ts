@@ -1,11 +1,10 @@
-import { drizzle } from 'drizzle-orm/libsql';
-import { createClient } from '@libsql/client';
+import { drizzle } from 'drizzle-orm/d1';
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 import * as schema from './schema';
 
-const client = createClient({
-  url: process.env.DATABASE_URL!,
-  authToken: process.env.DATABASE_AUTH_TOKEN,
-});
+export type DrizzleD1 = ReturnType<typeof drizzle<typeof schema>>;
 
-export const db = drizzle(client, { schema });
-export type DB = typeof db;
+export async function getDb(): Promise<DrizzleD1> {
+  const { env } = await getCloudflareContext({ async: true });
+  return drizzle(env.DB, { schema });
+}

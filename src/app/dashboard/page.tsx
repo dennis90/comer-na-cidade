@@ -1,6 +1,6 @@
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
-import { db } from '@/db';
+import { getDb } from '@/db';
 import { commerces } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { getCompletenessItems, getCompletenessScore, isPublishable } from '@/lib/completeness';
@@ -13,6 +13,7 @@ export default async function DashboardPage() {
   const session = await auth();
   if (!session) redirect('/login');
 
+  const db = await getDb();
   const commerce = await db.query.commerces.findFirst({
     where: eq(commerces.ownerId, session.user.id),
     with: {
@@ -62,11 +63,12 @@ export default async function DashboardPage() {
             const { auth: getAuth } = await import('@/auth');
             const session = await getAuth();
             if (!session) return;
-            const { db: database } = await import('@/db');
+            const { getDb: getDatabase } = await import('@/db');
             const { commerces: commercesTable } = await import('@/db/schema');
             const { eq: eqFn } = await import('drizzle-orm');
             const { revalidatePath } = await import('next/cache');
             const { redirect } = await import('next/navigation');
+            const database = await getDatabase();
             await database.update(commercesTable)
               .set({ published: true })
               .where(eqFn(commercesTable.ownerId, session.user.id));

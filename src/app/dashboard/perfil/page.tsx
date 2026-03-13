@@ -1,6 +1,6 @@
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
-import { db } from '@/db';
+import { getDb } from '@/db';
 import { commerces, categories, commerceCategories, commerceModalities, operatingHours, menus } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { ProfileForm } from '@/components/dashboard/profile-form';
@@ -12,6 +12,7 @@ export default async function PerfilPage() {
   const session = await auth();
   if (!session) redirect('/login');
 
+  const db = await getDb();
   const [allCategories, commerce] = await Promise.all([
     db.query.categories.findMany(),
     db.query.commerces.findFirst({

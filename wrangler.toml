@@ -1,0 +1,27 @@
+name = "comernacidade"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+pages_build_output_dir = ".vercel/output/static"
+
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "comernacidade-prod"
+# database_id = "<ID_DO_D1_AQUI>"  # obtido com: wrangler d1 create comernacidade-prod
+
+[[d1_databases]]
+binding = "DB"
+database_name = "comernacidade-prod"
+database_id = "985d360f-aa3d-458f-9265-d4edcfb61ce0"
+
+[vars]
+NEXT_PUBLIC_APP_URL = "https://comernacidade.com.br"
+NEXT_PUBLIC_R2_PUBLIC_URL = "https://pub-<hash>.r2.dev"
+
+# Secrets (configurar via dashboard ou wrangler secret put):
+# AUTH_SECRET
+# AUTH_RESEND_KEY
+# R2_ACCOUNT_ID
+# R2_ACCESS_KEY_ID
+# R2_SECRET_ACCESS_KEY
+# R2_BUCKET

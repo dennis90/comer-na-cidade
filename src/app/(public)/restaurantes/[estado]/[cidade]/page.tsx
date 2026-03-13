@@ -1,7 +1,5 @@
 import { notFound } from 'next/navigation';
-import { db } from '@/db';
-import { commerces } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { getDb } from '@/db';
 import { ListingIntro } from '@/components/public/listing-intro';
 import { CommerceCard } from '@/components/public/commerce-card';
 import { getPublishedCommercesByCity } from '@/lib/queries';
@@ -13,7 +11,7 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { estado, cidade } = await params;
-  const { city, commerceList } = await getPublishedCommercesByCity(cidade);
+  const { city, commerceList } = await getPublishedCommercesByCity(await getDb(), cidade);
   if (!city) return {};
 
   const stateUpper = estado.toUpperCase();
@@ -26,37 +24,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export async function generateStaticParams() {
-  try {
-    // Gera apenas cidades com ao menos 1 comércio publicado
-    const result = await db
-      .select({ cityId: commerces.cityId })
-      .from(commerces)
-      .where(eq(commerces.published, true))
-      .groupBy(commerces.cityId);
-
-    const cityIds = result.map((r) => r.cityId).filter(Boolean) as string[];
-    if (cityIds.length === 0) return [];
-
-    const citiesData = await db.query.cities.findMany({
-      where: (c, { inArray }) => inArray(c.id, cityIds),
-      columns: { slug: true, state: true },
-    });
-
-    return citiesData.map((c) => ({
-      estado: c.state.toLowerCase(),
-      cidade: c.slug,
-    }));
-  } catch {
-    return [];
-  }
-}
-
-export const dynamicParams = true; // fallback blocking para novas combinações
+export const dynamic = 'force-dynamic';
 
 export default async function CidadePage({ params }: Props) {
   const { estado, cidade } = await params;
-  const { city, commerceList } = await getPublishedCommercesByCity(cidade);
+  const { city, commerceList } = await getPublishedCommercesByCity(await getDb(), cidade);
 
   if (!city || city.state.toLowerCase() !== estado.toLowerCase()) notFound();
   if (commerceList.length === 0) notFound();

@@ -1,14 +1,16 @@
-import type { Config } from 'drizzle-kit';
+import { defineConfig } from 'drizzle-kit';
 import { config } from 'dotenv';
 
 config({ path: '.env.local' });
 
-export default {
+export default defineConfig({
   schema: './src/db/schema.ts',
   out: './drizzle',
-  dialect: 'turso',
+  dialect: 'sqlite',
+  driver: 'd1-http',
   dbCredentials: {
-    url: process.env.DATABASE_URL!,
-    authToken: process.env.DATABASE_AUTH_TOKEN,
+    accountId: process.env.CLOUDFLARE_ACCOUNT_ID!,
+    databaseId: process.env.CLOUDFLARE_D1_DATABASE_ID!,
+    token: process.env.CLOUDFLARE_D1_TOKEN!,
   },
-} satisfies Config;
+});

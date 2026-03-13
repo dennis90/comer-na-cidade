@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/db';
+import { getDb } from '@/db';
 import { cities } from '@/db/schema';
 import { like } from 'drizzle-orm';
 
@@ -13,7 +13,8 @@ export async function GET(req: NextRequest) {
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase();
 
-  // LibSQL/SQLite: busca por nome (LIKE, case-insensitive para ASCII)
+  const db = await getDb();
+  // D1/SQLite: busca por nome (LIKE, case-insensitive para ASCII)
   // Para acentos funcionar bem, buscamos também pelo slug (já normalizado)
   const results = await db.query.cities.findMany({
     where: like(cities.slug, `${term.replace(/\s+/g, '-')}%`),

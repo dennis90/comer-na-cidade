@@ -1,8 +1,8 @@
-import { db } from '@/db';
+import type { DrizzleD1 } from '@/db';
 import { commerces, cities, categories, commerceCategories, commerceModalities } from '@/db/schema';
 import { eq, and, inArray } from 'drizzle-orm';
 
-export async function getPublishedCommercesByCity(citySlug: string, categorySlug?: string) {
+export async function getPublishedCommercesByCity(db: DrizzleD1, citySlug: string, categorySlug?: string) {
   const city = await db.query.cities.findFirst({
     where: eq(cities.slug, citySlug),
   });
