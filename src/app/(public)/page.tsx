@@ -8,54 +8,66 @@ import type { Metadata } from 'next';
 export const revalidate = 86400; // revalidar a cada 24h
 
 export const metadata: Metadata = {
-  title: 'Cardápio Digital — Encontre comércios na sua cidade',
+  title: 'Comer na Cidade — Encontre comércios na sua cidade',
   description:
     'Descubra restaurantes, padarias, lanchonetes e mais na sua cidade. Veja cardápios completos, horários e formas de atendimento.',
 };
 
 async function getStats() {
-  const [commerceCount, cityCount] = await Promise.all([
-    db.select({ count: count() }).from(commerces).where(eq(commerces.published, true)),
-    db
-      .selectDistinct({ cityId: commerces.cityId })
-      .from(commerces)
-      .where(eq(commerces.published, true)),
-  ]);
-  return {
-    commerces: commerceCount[0]?.count ?? 0,
-    cities: cityCount.length,
-  };
+  try {
+    const [commerceCount, cityCount] = await Promise.all([
+      db.select({ count: count() }).from(commerces).where(eq(commerces.published, true)),
+      db
+        .selectDistinct({ cityId: commerces.cityId })
+        .from(commerces)
+        .where(eq(commerces.published, true)),
+    ]);
+    return {
+      commerces: commerceCount[0]?.count ?? 0,
+      cities: cityCount.length,
+    };
+  } catch {
+    return { commerces: 0, cities: 0 };
+  }
 }
 
 async function getFeaturedCities() {
-  // Cidades com mais comércios publicados
-  const result = await db
-    .select({
-      cityId: commerces.cityId,
-      cnt: count(commerces.id),
-    })
-    .from(commerces)
-    .where(eq(commerces.published, true))
-    .groupBy(commerces.cityId)
-    .orderBy(sql`count(${commerces.id}) desc`)
-    .limit(6);
+  try {
+    // Cidades com mais comércios publicados
+    const result = await db
+      .select({
+        cityId: commerces.cityId,
+        cnt: count(commerces.id),
+      })
+      .from(commerces)
+      .where(eq(commerces.published, true))
+      .groupBy(commerces.cityId)
+      .orderBy(sql`count(${commerces.id}) desc`)
+      .limit(6);
 
-  if (result.length === 0) return [];
+    if (result.length === 0) return [];
 
-  const cityIds = result.map((r) => r.cityId).filter(Boolean) as string[];
-  const citiesData = await db.query.cities.findMany({
-    where: (c, { inArray }) => inArray(c.id, cityIds),
-    columns: { id: true, slug: true, name: true, state: true },
-  });
+    const cityIds = result.map((r) => r.cityId).filter(Boolean) as string[];
+    const citiesData = await db.query.cities.findMany({
+      where: (c, { inArray }) => inArray(c.id, cityIds),
+      columns: { id: true, slug: true, name: true, state: true },
+    });
 
-  return citiesData.map((city) => ({
-    ...city,
-    count: result.find((r) => r.cityId === city.id)?.cnt ?? 0,
-  }));
+    return citiesData.map((city) => ({
+      ...city,
+      count: result.find((r) => r.cityId === city.id)?.cnt ?? 0,
+    }));
+  } catch {
+    return [];
+  }
 }
 
 async function getCategories() {
-  return db.query.categories.findMany({ orderBy: (c, { asc }) => asc(c.name) });
+  try {
+    return await db.query.categories.findMany({ orderBy: (c, { asc }) => asc(c.name) });
+  } catch {
+    return [];
+  }
 }
 
 export default async function HomePage() {

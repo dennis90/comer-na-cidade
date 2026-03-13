@@ -65,9 +65,13 @@ export default async function DashboardPage() {
             const { db: database } = await import('@/db');
             const { commerces: commercesTable } = await import('@/db/schema');
             const { eq: eqFn } = await import('drizzle-orm');
+            const { revalidatePath } = await import('next/cache');
+            const { redirect } = await import('next/navigation');
             await database.update(commercesTable)
               .set({ published: true })
               .where(eqFn(commercesTable.ownerId, session.user.id));
+            revalidatePath('/dashboard');
+            redirect('/dashboard');
           }}>
             <Button type="submit">Publicar</Button>
           </form>

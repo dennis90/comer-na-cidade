@@ -27,25 +27,29 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export async function generateStaticParams() {
-  // Gera apenas cidades com ao menos 1 comércio publicado
-  const result = await db
-    .select({ cityId: commerces.cityId })
-    .from(commerces)
-    .where(eq(commerces.published, true))
-    .groupBy(commerces.cityId);
+  try {
+    // Gera apenas cidades com ao menos 1 comércio publicado
+    const result = await db
+      .select({ cityId: commerces.cityId })
+      .from(commerces)
+      .where(eq(commerces.published, true))
+      .groupBy(commerces.cityId);
 
-  const cityIds = result.map((r) => r.cityId).filter(Boolean) as string[];
-  if (cityIds.length === 0) return [];
+    const cityIds = result.map((r) => r.cityId).filter(Boolean) as string[];
+    if (cityIds.length === 0) return [];
 
-  const citiesData = await db.query.cities.findMany({
-    where: (c, { inArray }) => inArray(c.id, cityIds),
-    columns: { slug: true, state: true },
-  });
+    const citiesData = await db.query.cities.findMany({
+      where: (c, { inArray }) => inArray(c.id, cityIds),
+      columns: { slug: true, state: true },
+    });
 
-  return citiesData.map((c) => ({
-    estado: c.state.toLowerCase(),
-    cidade: c.slug,
-  }));
+    return citiesData.map((c) => ({
+      estado: c.state.toLowerCase(),
+      cidade: c.slug,
+    }));
+  } catch {
+    return [];
+  }
 }
 
 export const dynamicParams = true; // fallback blocking para novas combinações

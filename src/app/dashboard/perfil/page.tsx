@@ -43,6 +43,9 @@ export default async function PerfilPage() {
         <ProfileForm
           commerce={commerce ?? null}
           allCategories={allCategories}
+          initialCategoryIds={commerce?.commerceCategories?.map((cc) => cc.categoryId) ?? []}
+          initialModalityValues={commerce?.commerceModalities?.map((cm) => cm.modality) ?? []}
+          initialCity={commerce?.city ?? null}
         />
       </div>
       <div>

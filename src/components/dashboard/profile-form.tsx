@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,9 +9,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import type { Commerce, Category } from '@/db/schema';
 
+interface CityOption {
+  id: string;
+  name: string;
+  state: string;
+}
+
 interface Props {
   commerce: Commerce | null;
   allCategories: Category[];
+  initialCategoryIds: string[];
+  initialModalityValues: string[];
+  initialCity: CityOption | null;
 }
 
 const MODALITIES = [
@@ -20,7 +29,7 @@ const MODALITIES = [
   { value: 'takeout', label: 'Retirada' },
 ] as const;
 
-export function ProfileForm({ commerce, allCategories }: Props) {
+export function ProfileForm({ commerce, allCategories, initialCategoryIds, initialModalityValues, initialCity }: Props) {
   const [saving, setSaving] = useState(false);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(commerce?.logoUrl ?? null);
@@ -36,8 +45,43 @@ export function ProfileForm({ commerce, allCategories }: Props) {
     cityId: commerce?.cityId ?? '',
   });
 
-  const [selectedCats, setSelectedCats] = useState<string[]>([]);
-  const [selectedMods, setSelectedMods] = useState<string[]>([]);
+  const [selectedCats, setSelectedCats] = useState<string[]>(initialCategoryIds);
+  const [selectedMods, setSelectedMods] = useState<string[]>(initialModalityValues);
+
+  // City autocomplete
+  const [cityQuery, setCityQuery] = useState(
+    initialCity ? `${initialCity.name} — ${initialCity.state}` : ''
+  );
+  const [cityOptions, setCityOptions] = useState<CityOption[]>([]);
+  const [showCityDropdown, setShowCityDropdown] = useState(false);
+  const cityDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function handleCityInput(value: string) {
+    setCityQuery(value);
+    setForm((f) => ({ ...f, cityId: '' })); // limpa seleção ao digitar
+    if (cityDebounce.current) clearTimeout(cityDebounce.current);
+    if (value.length < 2) { setCityOptions([]); setShowCityDropdown(false); return; }
+    cityDebounce.current = setTimeout(async () => {
+      const res = await fetch(`/api/cities/search?q=${encodeURIComponent(value)}`);
+      const { cities } = await res.json();
+      setCityOptions(cities);
+      setShowCityDropdown(true);
+    }, 300);
+  }
+
+  function selectCity(city: CityOption) {
+    setForm((f) => ({ ...f, cityId: city.id }));
+    setCityQuery(`${city.name} — ${city.state}`);
+    setCityOptions([]);
+    setShowCityDropdown(false);
+  }
+
+  // Fechar dropdown ao clicar fora
+  useEffect(() => {
+    function onClickOutside() { setShowCityDropdown(false); }
+    document.addEventListener('mousedown', onClickOutside);
+    return () => document.removeEventListener('mousedown', onClickOutside);
+  }, []);
 
   function toggleCat(id: string) {
     setSelectedCats((prev) =>
@@ -128,6 +172,32 @@ export function ProfileForm({ commerce, allCategories }: Props) {
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               placeholder="Descreva seu estabelecimento (mín. 80 caracteres para publicar)" />
             <p className="text-xs text-gray-500">{form.description.length} caracteres</p>
+          </div>
+
+          {/* Cidade */}
+          <div className="space-y-2 relative">
+            <Label htmlFor="city">Cidade</Label>
+            <Input
+              id="city"
+              autoComplete="off"
+              value={cityQuery}
+              onChange={(e) => handleCityInput(e.target.value)}
+              onFocus={() => cityOptions.length > 0 && setShowCityDropdown(true)}
+              placeholder="Digite o nome da cidade..."
+            />
+            {showCityDropdown && cityOptions.length > 0 && (
+              <ul className="absolute z-10 w-full bg-white border rounded-md shadow-md mt-1 max-h-48 overflow-y-auto">
+                {cityOptions.map((city) => (
+                  <li
+                    key={city.id}
+                    className="px-3 py-2 text-sm cursor-pointer hover:bg-gray-100"
+                    onMouseDown={(e) => { e.preventDefault(); selectCity(city); }}
+                  >
+                    {city.name} — {city.state}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           <div className="space-y-2">

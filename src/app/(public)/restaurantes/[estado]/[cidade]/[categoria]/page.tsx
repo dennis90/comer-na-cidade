@@ -27,6 +27,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export async function generateStaticParams() {
+  try {
   // Gera combinações cidade × categoria com ao menos 1 comércio publicado
   const links = await db
     .select({
@@ -79,6 +80,9 @@ export async function generateStaticParams() {
   }
 
   return result;
+  } catch {
+    return [];
+  }
 }
 
 export const dynamicParams = true;

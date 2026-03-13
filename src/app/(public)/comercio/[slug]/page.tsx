@@ -40,6 +40,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: commerce.description?.slice(0, 160) ?? '',
       ...(commerce.logoUrl && { images: [commerce.logoUrl] }),
     },
+    alternates: {
+      canonical: `/comercio/${slug}`,
+    },
   };
 }
 
@@ -92,12 +95,21 @@ export default async function ComercioPage({ params }: Props) {
           )}
           <div>
             <h1 className="text-3xl font-bold">{commerce.name}</h1>
-            {commerce.city && (
-              <p className="text-gray-500 text-sm mt-1">
-                {commerce.address && `${commerce.address} · `}
-                {commerce.city.name}, {commerce.city.state}
-              </p>
-            )}
+            {commerce.city && (() => {
+              const query = [commerce.address, commerce.city.name, commerce.city.state]
+                .filter(Boolean).join(', ');
+              const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+              return (
+                <a
+                  href={mapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-500 text-sm mt-1 hover:text-blue-600 hover:underline inline-flex items-center gap-1"
+                >
+                  📍 {commerce.address && `${commerce.address} · `}{commerce.city.name}, {commerce.city.state}
+                </a>
+              );
+            })()}
             {categories.length > 0 && (
               <div className="flex flex-wrap gap-1 mt-2">
                 {categories.map((cat) => (

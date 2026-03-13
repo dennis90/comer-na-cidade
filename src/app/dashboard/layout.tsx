@@ -1,8 +1,8 @@
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
-import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { signOut } from '@/auth';
+import { NavLinks } from '@/components/dashboard/nav-links';
 
 export default async function DashboardLayout({
   children,
@@ -16,20 +16,7 @@ export default async function DashboardLayout({
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white border-b">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <Link href="/dashboard" className="font-semibold text-sm">
-              Dashboard
-            </Link>
-            <Link href="/dashboard/perfil" className="text-sm text-gray-600 hover:text-gray-900">
-              Perfil
-            </Link>
-            <Link href="/dashboard/cardapio" className="text-sm text-gray-600 hover:text-gray-900">
-              Cardápio
-            </Link>
-            <Link href="/dashboard/horarios" className="text-sm text-gray-600 hover:text-gray-900">
-              Horários
-            </Link>
-          </div>
+          <NavLinks />
           <form
             action={async () => {
               'use server';

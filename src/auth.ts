@@ -1,29 +1,31 @@
 import NextAuth from 'next-auth';
-import { DrizzleAdapter } from '@auth/drizzle-adapter';
 import Resend from 'next-auth/providers/resend';
+import { DrizzleAdapter } from '@auth/drizzle-adapter';
 import { db } from '@/db';
 import { users, accounts, sessions, verificationTokens } from '@/db/schema';
+import { authConfig } from './auth.config';
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  ...authConfig,
+  providers: [
+    Resend({
+      apiKey: process.env.AUTH_RESEND_KEY,
+      from: process.env.AUTH_RESEND_FROM ?? 'onboarding@resend.dev',
+    }),
+  ],
   adapter: DrizzleAdapter(db, {
     usersTable: users,
     accountsTable: accounts,
     sessionsTable: sessions,
     verificationTokensTable: verificationTokens,
   }),
-  providers: [
-    Resend({
-      apiKey: process.env.AUTH_RESEND_KEY,
-      from: 'noreply@' + (process.env.NEXT_PUBLIC_APP_URL?.replace('https://', '').replace('http://', '') ?? 'localhost'),
-    }),
-  ],
-  pages: {
-    signIn: '/login',
-    verifyRequest: '/login?verify=1',
-  },
   callbacks: {
-    session({ session, user }) {
-      session.user.id = user.id;
+    jwt({ token, user }) {
+      if (user) token.sub = user.id;
+      return token;
+    },
+    session({ session, token }) {
+      if (token.sub) session.user.id = token.sub;
       return session;
     },
   },

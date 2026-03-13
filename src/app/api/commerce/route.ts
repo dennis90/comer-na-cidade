@@ -13,7 +13,7 @@ const commerceSchema = z.object({
   name: z.string().min(1).max(100),
   description: z.string().max(2000).optional(),
   address: z.string().max(300).optional(),
-  cityId: z.string().optional(),
+  cityId: z.string().transform((v) => v || undefined).optional(),
   phone: z.string().max(20).optional(),
   whatsapp: z.string().max(20).optional(),
   instagram: z.string().max(100).optional(),
